@@ -46,11 +46,16 @@ function draw() {
   mspos = createVector(msx, msy);
   mspos_gr = createVector(grx, gry);
   switch (state) {
-    case 2 || 3:
+    case 2:
+    case 3:
       new_dot();
   }
-  for (let d in dots) {
-    d.show;
+  for (let dot of dots) {
+    dot.show();
+    if (dot instanceof Node) {
+      dot.move();
+      dot.walls();
+    }
   }
 }
 
@@ -97,6 +102,8 @@ function mode(md) {
       document.getElementById("node").style.background = "white";
   }
 }
+
+class Canvas {}
 
 class Dot {
   constructor(pos) {
