@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="../src/main.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="utf-8"/>
+  </head>
+  <body>
+    <main>
+      <div class="menu menu-billet"></div>
+      <div class="menu menu-settings">
+        <h1>Mode</h1>
+        <div class="switchers">
+          <div class="switch-container">
+            <button type="submit" id="drag" onclick="mode(0);" class="switch"></button>
+            <p>Drag</p>
+          </div>
+          <div class="switch-container">
+            <button type="submit" id="bond" onclick="mode(1);" class="switch"></button>
+            <p>Bond</p>
+          </div>
+          <div class="switch-container">
+            <button type="submit" id="pin" onclick="mode(2);" class="switch"></button>
+            <p>Pin</p>
+          </div>
+          <div class="switch-container">
+            <button type="submit" id="node" onclick="mode(3);" class="switch"></button>
+            <p>Node</p>
+          </div>
+          <p class="use-grid">Use grid<input type="checkbox" id="chbox"></p>
+        </div>
+      </div>
+      <div id="canvas_block"></div>
+    </main>
+  </body>
+</html>

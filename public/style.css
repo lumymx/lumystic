@@ -1,0 +1,56 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: monospace;
+  }
+
+.menu {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  width: 175px;
+  height: 235px;
+  border-radius: 20px;
+}
+
+.menu-billet {
+  opacity: 0.22;
+  box-shadow: 0 5px 5px rgba(0, 0, 0, 0.2);
+  background: #2b2b2b;
+}
+
+.menu-settings {
+  outline: 2px solid #000;
+  text-align: center;
+}
+
+.switchers {
+  position: relative;
+  display: inline-block;
+	width: 100%;
+	height: auto;
+	box-sizing: border-box;
+	vertical-align: top;
+}
+
+.switch-container {
+  display: inline-block;
+	box-sizing: border-box;
+	vertical-align: top;
+  margin: 0 15px;
+  line-height: 0;
+  font-size: 16px;
+}
+
+.switch {
+  background: black;
+  border-radius: 7px;
+  width: 40px;
+  height: 40px;
+  border: none;
+}
+
+.use-grid {
+  margin: 0 28px 0 0;
+  text-align: right;
+}
