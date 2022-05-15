@@ -1,7 +1,5 @@
-// sizes
-var grid = 30;
-var dsize = 10;
 // objects
+this.dsize = 10;
 var dots = [];
 // position
 var mspos;
@@ -15,48 +13,13 @@ var g_mult = 0.03;
 var energy = 0.9;
 
 function setup() {
-  var height = windowHeight;
-  var width = windowWidth;
-  var canvas = createCanvas(width, height);
-  canvas.parent("canvas_block");
+  let canvas = new Canvas();
+  canvas.setup();
 }
 
 function draw() {
-  background(220);
-  strokeWeight(1);
-  stroke(200, 200, 200);
-  for (let i = 0; i <= int(width / grid); i++) {
-    line(i * grid, 0, i * grid, height);
-  }
-  for (let i = 0; i <= int(height / grid); i++) {
-    line(0, i * grid, width, i * grid);
-  }
-  noStroke();
-  let msx = mouseX;
-  let msy = mouseY;
-  let grx;
-  let gry;
-  if (chbox.checked) {
-    grx = round(msx / grid) * grid;
-    gry = round(msy / grid) * grid;
-  } else {
-    grx = msx;
-    gry = msy;
-  }
-  mspos = createVector(msx, msy);
-  mspos_gr = createVector(grx, gry);
-  switch (state) {
-    case 2:
-    case 3:
-      new_dot();
-  }
-  for (let dot of dots) {
-    dot.show();
-    if (dot instanceof Node) {
-      dot.move();
-      dot.walls();
-    }
-  }
+  let canvas = new Canvas();
+  canvas.draw();
 }
 
 function new_dot() {
@@ -103,7 +66,58 @@ function mode(md) {
   }
 }
 
-class Canvas {}
+class Canvas {
+  constructor() {
+    if (Canvas._instance) {
+      return Canvas._instance;
+    }
+    Canvas._instance = this;
+    height = windowHeight;
+    width = windowWidth;
+    this.grid = 30;
+  }
+  setup() {
+    var canvas = createCanvas(width, height);
+    canvas.parent("canvas_block");
+  }
+  draw() {
+    background(220);
+    strokeWeight(1);
+    stroke(200, 200, 200);
+    for (let i = 0; i <= int(width / this.grid); i++) {
+      line(i * this.grid, 0, i * this.grid, height);
+    }
+    for (let i = 0; i <= int(height / this.grid); i++) {
+      line(0, i * this.grid, width, i * this.grid);
+    }
+    noStroke();
+    let msx = mouseX;
+    let msy = mouseY;
+    let grx;
+    let gry;
+    if (chbox.checked) {
+      grx = round(msx / grid) * grid;
+      gry = round(msy / grid) * grid;
+    } else {
+      grx = msx;
+      gry = msy;
+    }
+    mspos = createVector(msx, msy);
+    mspos_gr = createVector(grx, gry);
+    switch (state) {
+      case 2:
+      case 3:
+        new_dot();
+    }
+    for (let dot of dots) {
+      dot.show();
+      if (dot instanceof Node) {
+        dot.move();
+        dot.walls();
+      }
+    }
+  }
+}
 
 class Dot {
   constructor(pos) {
