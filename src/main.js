@@ -1,16 +1,8 @@
-// objects
-this.dsize = 10;
-var dots = [];
 // position
 var mspos;
 var mspos_gr;
 // settings
 var state;
-// constants
-var g = 9.8066;
-// multipliers
-var g_mult = 0.03;
-var energy = 0.9;
 
 function setup() {
   let canvas = new Canvas();
@@ -22,50 +14,6 @@ function draw() {
   canvas.draw();
 }
 
-function new_dot() {
-  if (mouseButton == LEFT && mouseIsPressed == true) {
-    let dot_near = false;
-    for (let i = 0; i < dots.length; i++) {
-      let vec = p5.Vector.sub(mspos_gr, dots[i].pos);
-      let dist = vec.mag();
-      if (dist < dsize + 2.5) dot_near = true;
-    }
-    if (dot_near == false) {
-      switch (state) {
-        case 2:
-          dots.push(new Pin(mspos_gr));
-          break;
-        case 3:
-          dots.push(
-            new Node(mspos_gr, createVector(0, 0), createVector(0, g * g_mult))
-          );
-          break;
-      }
-    }
-  }
-}
-
-function mode(md) {
-  document.getElementById("drag").style.background = "black";
-  document.getElementById("bond").style.background = "black";
-  document.getElementById("pin").style.background = "black";
-  document.getElementById("node").style.background = "black";
-  state = md;
-  switch (state) {
-    case 0:
-      document.getElementById("drag").style.background = "white";
-      break;
-    case 1:
-      document.getElementById("bond").style.background = "white";
-      break;
-    case 2:
-      document.getElementById("pin").style.background = "white";
-      break;
-    case 3:
-      document.getElementById("node").style.background = "white";
-  }
-}
-
 class Canvas {
   constructor() {
     if (Canvas._instance) {
@@ -74,7 +22,11 @@ class Canvas {
     Canvas._instance = this;
     height = windowHeight;
     width = windowWidth;
-    this.grid = 30;
+    _grid = 30;
+    this.dots = [];
+    this.dsize = 10;
+    let physics = new Physics();
+    this.g_result = physics.g_result;
   }
   setup() {
     var canvas = createCanvas(width, height);
@@ -84,11 +36,11 @@ class Canvas {
     background(220);
     strokeWeight(1);
     stroke(200, 200, 200);
-    for (let i = 0; i <= int(width / this.grid); i++) {
-      line(i * this.grid, 0, i * this.grid, height);
+    for (let i = 0; i <= int(width / _grid); i++) {
+      line(i * _grid, 0, i * _grid, height);
     }
-    for (let i = 0; i <= int(height / this.grid); i++) {
-      line(0, i * this.grid, width, i * this.grid);
+    for (let i = 0; i <= int(height / _grid); i++) {
+      line(0, i * _grid, width, i * _grid);
     }
     noStroke();
     let msx = mouseX;
@@ -96,8 +48,8 @@ class Canvas {
     let grx;
     let gry;
     if (chbox.checked) {
-      grx = round(msx / grid) * grid;
-      gry = round(msy / grid) * grid;
+      grx = round(msx / _grid) * _grid;
+      gry = round(msy / _grid) * _grid;
     } else {
       grx = msx;
       gry = msy;
@@ -107,9 +59,9 @@ class Canvas {
     switch (state) {
       case 2:
       case 3:
-        new_dot();
+        this.new_dot();
     }
-    for (let dot of dots) {
+    for (let dot of this.dots) {
       dot.show();
       if (dot instanceof Node) {
         dot.move();
@@ -117,66 +69,135 @@ class Canvas {
       }
     }
   }
+  mode(md) {
+    document.getElementById("drag").style.background = "black";
+    document.getElementById("bond").style.background = "black";
+    document.getElementById("pin").style.background = "black";
+    document.getElementById("node").style.background = "black";
+    state = md;
+    switch (state) {
+      case 0:
+        document.getElementById("drag").style.background = "white";
+        break;
+      case 1:
+        document.getElementById("bond").style.background = "white";
+        break;
+      case 2:
+        document.getElementById("pin").style.background = "white";
+        break;
+      case 3:
+        document.getElementById("node").style.background = "white";
+    }
+  }
+  new_dot() {
+    if (mouseButton == LEFT && mouseIsPressed == true) {
+      let dot_near = false;
+      for (let i = 0; i < this.dots.length; i++) {
+        let vec = p5.Vector.sub(mspos_gr, this.dots[i].pos);
+        let dist = vec.mag();
+        if (dist < this.dsize + 2.5) dot_near = true;
+      }
+      if (dot_near == false) {
+        switch (state) {
+          case 2:
+            this.dots.push(new Pin(mspos_gr));
+            break;
+          case 3:
+            this.dots.push(
+              new Node(
+                mspos_gr,
+                createVector(0, 0),
+                createVector(0, this.g_result)
+              )
+            );
+            break;
+        }
+      }
+    }
+  }
+}
+
+class Physics {
+  _g = 9.8066;
+  _energy = 0.9;
+  constructor() {
+    if (Physics._instance) {
+      return Physics._instance;
+    }
+    Physics._instance = this;
+    this.g_mult = 0.03;
+  }
+  get g_result() {
+    return this.g_mult * this._g;
+  }
+  get energy() {
+    return this._energy;
+  }
 }
 
 class Dot {
   constructor(pos) {
     this.pos = pos;
+    let canvas = new Canvas();
+    this.dsize = canvas.dsize;
+    this.mspos = canvas.mspos;
   }
 }
 
 class Node extends Dot {
-  constructor(pos, vel, acc) {
-    super(pos);
+  constructor(pos, vel, acc, dsize) {
+    super(pos, dsize);
     this.vel = vel;
     this.acc = acc;
+    let physics = new Physics();
+    this.energy = physics.energy;
   }
   show() {
     let vec = p5.Vector.sub(mspos, this.pos);
     let dist = vec.mag();
-    if (dist > dsize / 2) {
+    if (dist > this.dsize / 2) {
       fill(220, 160, 0);
-      ellipse(this.pos.x, this.pos.y, dsize, dsize);
+      ellipse(this.pos.x, this.pos.y, this.dsize, this.dsize);
     } else {
       fill(0, 200, 0);
-      ellipse(this.pos.x, this.pos.y, dsize + 2.5, dsize + 2.5);
+      ellipse(this.pos.x, this.pos.y, this.dsize + 2.5, this.dsize + 2.5);
     }
   }
   move() {
     this.vel.add(this.acc);
     this.pos.add(this.vel);
-    if (this.pos.y > ceil(height - dsize / 2)) {
-      this.pos.y = ceil(height - dsize / 2);
+    if (this.pos.y > ceil(height - this.dsize / 2)) {
+      this.pos.y = ceil(height - this.dsize / 2);
     }
-    if (this.pos.x > ceil(width - dsize / 2)) {
-      this.pos.x = ceil(width - dsize / 2);
-    } else if (this.pos.x < ceil(dsize / 2)) {
-      this.pos.x = ceil(dsize / 2);
+    if (this.pos.x > ceil(width - this.dsize / 2)) {
+      this.pos.x = ceil(width - this.dsize / 2);
+    } else if (this.pos.x < ceil(this.dsize / 2)) {
+      this.pos.x = ceil(this.dsize / 2);
     }
   }
   walls() {
-    if (this.pos.x >= width - dsize / 2 || this.pos.x <= dsize / 2) {
-      this.vel.x *= -1 * energy;
+    if (this.pos.x >= width - this.dsize / 2 || this.pos.x <= this.dsize / 2) {
+      this.vel.x *= -1 * this.energy;
     }
-    if (this.pos.y >= height - dsize / 2 || this.pos.y <= dsize / 2) {
-      this.vel.y *= -1 * energy;
+    if (this.pos.y >= height - this.dsize / 2 || this.pos.y <= this.dsize / 2) {
+      this.vel.y *= -1 * this.energy;
     }
   }
 }
 
 class Pin extends Dot {
-  constructor(pos) {
-    super(pos);
+  constructor(pos, dsize) {
+    super(pos, dsize);
   }
   show() {
     let vec = p5.Vector.sub(mspos, this.pos);
     let dist = vec.mag();
-    if (dist > dsize / 2) {
+    if (dist > this.dsize / 2) {
       fill(220, 0, 0);
-      ellipse(this.pos.x, this.pos.y, dsize, dsize);
+      ellipse(this.pos.x, this.pos.y, this.dsize, this.dsize);
     } else {
       fill(0, 200, 0);
-      ellipse(this.pos.x, this.pos.y, dsize + 2.5, dsize + 2.5);
+      ellipse(this.pos.x, this.pos.y, this.dsize + 2.5, this.dsize + 2.5);
     }
   }
 }
