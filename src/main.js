@@ -1,9 +1,3 @@
-// position
-var mspos;
-var mspos_gr;
-// settings
-var state;
-
 function setup() {
   let canvas = new Canvas();
   canvas.setup();
@@ -28,6 +22,21 @@ class Canvas {
     let physics = new Physics();
     this.g_result = physics.g_result;
   }
+  get mspos() {
+    return createVector(mouseX, mouseY);
+  }
+  get mspos_gr() {
+    let msx = mouseX;
+    let msy = mouseY;
+    if (chbox.checked) {
+      return createVector(
+        round(msx / _grid) * _grid,
+        round(msy / _grid) * _grid
+      );
+    } else {
+      return createVector(msx, msy);
+    }
+  }
   setup() {
     var canvas = createCanvas(width, height);
     canvas.parent("canvas_block");
@@ -43,20 +52,7 @@ class Canvas {
       line(0, i * _grid, width, i * _grid);
     }
     noStroke();
-    let msx = mouseX;
-    let msy = mouseY;
-    let grx;
-    let gry;
-    if (chbox.checked) {
-      grx = round(msx / _grid) * _grid;
-      gry = round(msy / _grid) * _grid;
-    } else {
-      grx = msx;
-      gry = msy;
-    }
-    mspos = createVector(msx, msy);
-    mspos_gr = createVector(grx, gry);
-    switch (state) {
+    switch (this.state) {
       case 2:
       case 3:
         this.new_dot();
@@ -74,8 +70,8 @@ class Canvas {
     document.getElementById("bond").style.background = "black";
     document.getElementById("pin").style.background = "black";
     document.getElementById("node").style.background = "black";
-    state = md;
-    switch (state) {
+    this.state = md;
+    switch (this.state) {
       case 0:
         document.getElementById("drag").style.background = "white";
         break;
@@ -92,13 +88,15 @@ class Canvas {
   new_dot() {
     if (mouseButton == LEFT && mouseIsPressed == true) {
       let dot_near = false;
+      let canvas = new Canvas();
+      let mspos_gr = canvas.mspos_gr;
       for (let i = 0; i < this.dots.length; i++) {
         let vec = p5.Vector.sub(mspos_gr, this.dots[i].pos);
         let dist = vec.mag();
         if (dist < this.dsize + 2.5) dot_near = true;
       }
       if (dot_near == false) {
-        switch (state) {
+        switch (this.state) {
           case 2:
             this.dots.push(new Pin(mspos_gr));
             break;
@@ -140,7 +138,6 @@ class Dot {
     this.pos = pos;
     let canvas = new Canvas();
     this.dsize = canvas.dsize;
-    this.mspos = canvas.mspos;
   }
 }
 
@@ -153,6 +150,8 @@ class Node extends Dot {
     this.energy = physics.energy;
   }
   show() {
+    let canvas = new Canvas();
+    let mspos = canvas.mspos;
     let vec = p5.Vector.sub(mspos, this.pos);
     let dist = vec.mag();
     if (dist > this.dsize / 2) {
@@ -190,6 +189,8 @@ class Pin extends Dot {
     super(pos, dsize);
   }
   show() {
+    let canvas = new Canvas();
+    let mspos = canvas.mspos;
     let vec = p5.Vector.sub(mspos, this.pos);
     let dist = vec.mag();
     if (dist > this.dsize / 2) {
