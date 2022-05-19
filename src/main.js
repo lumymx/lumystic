@@ -14,8 +14,8 @@ class Canvas {
       return Canvas._instance;
     }
     Canvas._instance = this;
-    height = windowHeight;
-    width = windowWidth;
+    this.height = windowHeight;
+    this.width = windowWidth;
     _grid = 30;
     this.dots = [];
     this.ends = [];
@@ -25,7 +25,7 @@ class Canvas {
     this.g_result = physics.g_result;
   }
   setup() {
-    let canvas = createCanvas(width, height);
+    let canvas = createCanvas(this.width, this.height);
     canvas.parent("canvas_block");
   }
   draw() {
@@ -114,14 +114,14 @@ class Canvas {
 class Physics {
   _g = 9.8066;
   _energy = 0.7;
-  _stiffness = 0.009;
+  _stiffness = 0.03;
   _mass = 1;
   constructor() {
     if (Physics._instance) {
       return Physics._instance;
     }
     Physics._instance = this;
-    this.g_mult = 0.03;
+    this.g_mult = 0.045;
   }
   get g_result() {
     return this.g_mult * this._g;
@@ -259,66 +259,8 @@ class Node extends Dot {
       circle(this.pos.x, this.pos.y, this.dsize);
     }
   }
-  intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
-    if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
-      return false;
-    }
-    let denominator = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
-    if (denominator == 0) {
-      return false;
-    }
-    let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator;
-    let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator;
-    if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
-      return false;
-    }
-    let x = x1 + ua * (x2 - x1);
-    let y = y1 + ua * (y2 - y1);
-    return createVector(x, y);
-  }
   move() {
     this.vel.add(this.acc);
-    let dir;
-    let dist;
-    let way;
-    let p1 = this.pos;
-    let p2;
-    let p3 = createVector(p1.x + this.vel.x, p1.y + this.vel.y);
-    let rat;
-    let x1;
-    let x2;
-    let c;
-    let cc = false;
-    let minc = 99999;
-    for (let i = 0; i < canvas.dots.length; i++) {
-      if (this !== canvas.dots[i]) {
-        p2 = canvas.dots[i].pos;
-        dir = p5.Vector.sub(p2, p1);
-        dist = dir.mag();
-        way = this.vel.mag();
-        if (way > dist - this.dsize / 2) {
-          rat = this.dsize / dist;
-          x1 = dir.copy().mult(rat);
-          x1 = createVector(-1 * x1.y, x1.x);
-          x2 = createVector(-1 * x1.x, -1 * x1.y);
-          x1.add(p2);
-          x2.add(p2);
-          c = this.intersect(p1.x, p1.y, p3.x, p3.y, x1.x, x1.y, x2.x, x2.y);
-          if (c) {
-            if (c.mag() < minc) {
-              minc = c.mag();
-              cc = c;
-            }
-          }
-          if (cc) {
-            rat = this.dsize / 2 / cc.mag();
-            cc.mult(1 - rat);
-            this.pos.add(cc);
-            return;
-          }
-        }
-      }
-    }
     this.pos.add(this.vel);
     if (this.pos.y > ceil(height - this.dsize / 2)) {
       this.pos.y = ceil(height - this.dsize / 2);
@@ -403,9 +345,9 @@ class Bond {
     let vec = p5.Vector.sub(this.n1.pos, this.n2.pos);
     let dist = vec.mag();
     let x = Math.abs(dist - this.len);
-    let a = (-k * x * e) / m;
+    let a = (-k * x) / m;
     let ap = a / dist;
-    vec.mult(ap);
+    vec.mult(ap * e);
     if (dist > this.len) {
       if (this.n1 instanceof Node) {
         this.n1.vel.add(vec);
