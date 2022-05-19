@@ -184,11 +184,17 @@ class Actions {
     }
   }
   new_dot() {
-    let x = this.select;
     let input = new Input();
     let mspos_gr = input.mspos_gr;
+    let dot_near = false;
+    for (let i = 0; i < canvas.dots.length; i++) {
+      if (p5.Vector.sub(mspos_gr, canvas.dots[i].pos).mag() < canvas.dsize) {
+        dot_near = true;
+        break;
+      }
+    }
     if (
-      x == -1 &&
+      !dot_near &&
       mouseButton == LEFT &&
       mouseIsPressed == true &&
       !(mspos_gr.x <= 182 && mspos_gr.y <= 260)
