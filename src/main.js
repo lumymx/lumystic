@@ -10,12 +10,12 @@ function draw() {
 
 class Canvas {
   GRID_SIZE = 30;
+  DOT_SIZE = 10;
   height = windowHeight;
   width = windowWidth;
   dots = [];
   ends = [];
   bonds = [];
-  dsize = 10;
   constructor() {
     if (Canvas._instance) {
       return Canvas._instance;
@@ -51,24 +51,24 @@ class Canvas {
           line(
             canvas.dots[canvas.ends[0]].pos.x,
             canvas.dots[canvas.ends[0]].pos.y,
-            input.mousePostion.x,
-            input.mousePostion.y
+            input.mousePosition.x,
+            input.mousePosition.y
           );
         }
-        actions.new_bond();
+        actions.newBond();
         break;
       case 2:
       case 3:
-        actions.new_dot();
+        actions.newDot();
         break;
     }
     for (let b of this.bonds) {
-      b.show();
+      b.display();
       b.move();
     }
     noStroke();
     for (let dot of this.dots) {
-      dot.show();
+      dot.display();
       if (dot instanceof Node && !this.pause) {
         dot.collide();
         dot.move();
@@ -77,7 +77,7 @@ class Canvas {
     }
     let x = actions.select;
     if (x != -1) {
-      this.dots[x].show();
+      this.dots[x].display();
     }
   }
   mode(md) {
@@ -157,12 +157,12 @@ class Actions {
   }
   get select() {
     let input = new Input();
-    let mousePostion = input.mousePosition;
+    let mousePosition = input.mousePosition;
     let x = -1;
     for (let i = 0; i < canvas.dots.length; i++) {
-      let vec = p5.Vector.sub(mousePostion, canvas.dots[i].pos);
+      let vec = p5.Vector.sub(mousePosition, canvas.dots[i].pos);
       let dist = vec.mag();
-      if (dist < canvas.dsize) {
+      if (dist < canvas.DOT_SIZE) {
         x = i;
         break;
       }
@@ -173,12 +173,12 @@ class Actions {
     let input = new Input();
     let x = this.select;
     if (mouseButton == LEFT && mouseIsPressed == true && x != -1) {
-      let mousePostion = input.mousePostion;
-      canvas.dots[x].pos = mousePostion;
+      let mousePosition = input.mousePosition;
+      canvas.dots[x].pos = mousePosition;
       canvas.dots[x].vel = createVector(0, 0);
     }
   }
-  new_dot() {
+  newDot() {
     let input = new Input();
     let dotPosition;
     if (gridCheckbox.checked) {
@@ -186,15 +186,17 @@ class Actions {
     } else {
       dotPosition = input.mousePosition;
     }
-    let dot_near = false;
+    let isDotNear = false;
     for (let i = 0; i < canvas.dots.length; i++) {
-      if (p5.Vector.sub(dotPosition, canvas.dots[i].pos).mag() < canvas.dsize) {
-        dot_near = true;
+      if (
+        p5.Vector.sub(dotPosition, canvas.dots[i].pos).mag() < canvas.DOT_SIZE
+      ) {
+        isDotNear = true;
         break;
       }
     }
     if (
-      !dot_near &&
+      !isDotNear &&
       mouseButton == LEFT &&
       mouseIsPressed == true &&
       !(dotPosition.x <= 182 && dotPosition.y <= 260)
@@ -211,7 +213,7 @@ class Actions {
       }
     }
   }
-  new_bond() {
+  newBond() {
     let x = this.select;
     if (
       x != -1 &&
@@ -236,64 +238,70 @@ class Dot {
   constructor(pos) {
     this.pos = pos;
     let canvas = new Canvas();
-    this.dsize = canvas.dsize;
+    this.dotSize = canvas.DOT_SIZE;
   }
 }
 
 class Node extends Dot {
-  constructor(pos, vel, acc, dsize) {
-    super(pos, dsize);
+  constructor(pos, vel, acc, dotSize) {
+    super(pos, dotSize);
     this.vel = vel;
     this.acc = acc;
     let physics = new Physics();
     this.energy = physics.ENERGY;
     canvas = new Canvas();
   }
-  show() {
+  display() {
     noStroke();
     let actions = new Actions();
     let x = actions.select;
     if (canvas.dots[x] === this) {
       fill(0, 200, 0);
-      circle(this.pos.x, this.pos.y, this.dsize + 2.5);
+      circle(this.pos.x, this.pos.y, this.dotSize + 2.5);
     } else {
       fill(220, 160, 0);
-      circle(this.pos.x, this.pos.y, this.dsize);
+      circle(this.pos.x, this.pos.y, this.dotSize);
     }
   }
   move() {
     this.vel.add(this.acc);
     this.pos.add(this.vel);
-    if (this.pos.y > ceil(height - this.dsize / 2)) {
-      this.pos.y = ceil(height - this.dsize / 2);
-    } else if (this.pos.y < ceil(this.dsize / 2)) {
-      this.pos.y = ceil(this.dsize / 2);
+    if (this.pos.y > ceil(height - this.dotSize / 2)) {
+      this.pos.y = ceil(height - this.dotSize / 2);
+    } else if (this.pos.y < ceil(this.dotSize / 2)) {
+      this.pos.y = ceil(this.dotSize / 2);
     }
-    if (this.pos.x > ceil(width - this.dsize / 2)) {
-      this.pos.x = ceil(width - this.dsize / 2);
-    } else if (this.pos.x < ceil(this.dsize / 2)) {
-      this.pos.x = ceil(this.dsize / 2);
+    if (this.pos.x > ceil(width - this.dotSize / 2)) {
+      this.pos.x = ceil(width - this.dotSize / 2);
+    } else if (this.pos.x < ceil(this.dotSize / 2)) {
+      this.pos.x = ceil(this.dotSize / 2);
     }
   }
   walls() {
-    if (this.pos.x >= width - this.dsize / 2 || this.pos.x <= this.dsize / 2) {
+    if (
+      this.pos.x >= width - this.dotSize / 2 ||
+      this.pos.x <= this.dotSize / 2
+    ) {
       this.vel.x *= -1 * this.energy;
     }
-    if (this.pos.y >= height - this.dsize / 2 || this.pos.y <= this.dsize / 2) {
+    if (
+      this.pos.y >= height - this.dotSize / 2 ||
+      this.pos.y <= this.dotSize / 2
+    ) {
       this.vel.y *= -1 * this.energy;
     }
   }
   collide() {
     let dir;
-    let dist;
+    let distance;
     let v1;
     let v2;
     for (let i = 0; i < canvas.dots.length; i++) {
       dir = p5.Vector.sub(canvas.dots[i].pos, this.pos);
-      dist = dir.mag();
-      if (dist <= this.dsize) {
+      distance = dir.mag();
+      if (distance <= this.dotSize) {
         dir.normalize();
-        let correction = this.dsize - dist;
+        let correction = this.dotSize - distance;
         v1 = p5.Vector.dot(dir, this.vel);
         v2 = p5.Vector.dot(dir, canvas.dots[i].vel);
         dir.mult(v1 - v2);
@@ -310,32 +318,32 @@ class Node extends Dot {
 }
 
 class Pin extends Dot {
-  constructor(pos, dsize) {
-    super(pos, dsize);
+  constructor(pos, dotSize) {
+    super(pos, dotSize);
   }
-  show() {
+  display() {
     let actions = new Actions();
     let x = actions.select;
     if (canvas.dots[x] === this) {
       fill(0, 200, 0);
-      circle(this.pos.x, this.pos.y, this.dsize + 2.5);
+      circle(this.pos.x, this.pos.y, this.dotSize + 2.5);
     } else {
       fill(220, 0, 0);
-      circle(this.pos.x, this.pos.y, this.dsize);
+      circle(this.pos.x, this.pos.y, this.dotSize);
     }
   }
 }
 
 class Bond {
-  constructor(n1, n2, len) {
+  constructor(n1, n2, length) {
     this.n1 = n1;
     this.n2 = n2;
-    this.len = len;
+    this.length = length;
     let canvas = new Canvas();
-    this.dsize = canvas.dsize;
+    this.dotSize = canvas.dotSize;
   }
-  show() {
-    strokeWeight(this.dsize * 0.5);
+  display() {
+    strokeWeight(this.dotSize * 0.5);
     stroke(220, 160, 0);
     line(this.n1.pos.x, this.n1.pos.y, this.n2.pos.x, this.n2.pos.y);
   }
@@ -345,12 +353,12 @@ class Bond {
     let k = physics.BOND_STIFFNESS;
     let e = physics.ENERGY;
     let vec = p5.Vector.sub(this.n1.pos, this.n2.pos);
-    let dist = vec.mag();
-    let x = Math.abs(dist - this.len);
+    let distance = vec.mag();
+    let x = Math.abs(distance - this.length);
     let a = (-k * x) / m;
-    let ap = a / dist;
+    let ap = a / distance;
     vec.mult(ap * e);
-    if (dist > this.len) {
+    if (distance > this.length) {
       if (this.n1 instanceof Node) {
         this.n1.vel.add(vec);
       }
@@ -358,7 +366,7 @@ class Bond {
         vec.mult(-1);
         this.n2.vel.add(vec);
       }
-    } else if (dist < this.len) {
+    } else if (distance < this.length) {
       if (this.n2 instanceof Node) {
         this.n2.vel.add(vec);
       }
