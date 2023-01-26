@@ -3,8 +3,8 @@
   <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <script src="../src/main.js"></script>
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <meta charset="utf-8" />
   </head>
   <body>
     <main>
@@ -13,23 +13,47 @@
         <h1>Mode</h1>
         <div class="switchers">
           <div class="switch-container">
-            <button type="submit" id="drag" onclick="canvas = new Canvas(); canvas.mode(0);" class="switch"></button>
+            <button
+              type="submit"
+              id="drag"
+              onclick="canvas = new Canvas(); canvas.mode(0);"
+              class="switch"
+            ></button>
             <p>Drag</p>
           </div>
           <div class="switch-container">
-            <button type="submit" id="bond" onclick="canvas = new Canvas(); canvas.mode(1);" class="switch"></button>
+            <button
+              type="submit"
+              id="bond"
+              onclick="canvas = new Canvas(); canvas.mode(1);"
+              class="switch"
+            ></button>
             <p>Bond</p>
           </div>
           <div class="switch-container">
-            <button type="submit" id="pin" onclick="canvas = new Canvas(); canvas.mode(2);" class="switch"></button>
+            <button
+              type="submit"
+              id="pin"
+              onclick="canvas = new Canvas(); canvas.mode(2);"
+              class="switch"
+            ></button>
             <p>Pin</p>
           </div>
           <div class="switch-container">
-            <button type="submit" id="node" onclick="canvas = new Canvas(); canvas.mode(3);" class="switch"></button>
+            <button
+              type="submit"
+              id="node"
+              onclick="canvas = new Canvas(); canvas.mode(3);"
+              class="switch"
+            ></button>
             <p>Node</p>
           </div>
-          <p class="use-grid">Use grid<input type="checkbox" id="grid_chbox"></p>
-          <p class="use-grid">Pause<input type="checkbox" id="pause_chbox"></p>
+          <p class="use-grid">
+            Use grid<input type="checkbox" id="gridCheckbox" />
+          </p>
+          <p class="use-grid">
+            Pause<input type="checkbox" id="pauseCheckbox" />
+          </p>
         </div>
       </div>
       <div id="canvas_block"></div>

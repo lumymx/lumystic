@@ -9,20 +9,20 @@ function draw() {
 }
 
 class Canvas {
+  GRID_SIZE = 30;
+  height = windowHeight;
+  width = windowWidth;
+  dots = [];
+  ends = [];
+  bonds = [];
+  dsize = 10;
   constructor() {
     if (Canvas._instance) {
       return Canvas._instance;
     }
     Canvas._instance = this;
-    this.height = windowHeight;
-    this.width = windowWidth;
-    _grid = 30;
-    this.dots = [];
-    this.ends = [];
-    this.bonds = [];
-    this.dsize = 10;
     let physics = new Physics();
-    this.g_result = physics.g_result;
+    this.g = physics.g;
   }
   setup() {
     let canvas = createCanvas(this.width, this.height);
@@ -32,11 +32,11 @@ class Canvas {
     background(220);
     strokeWeight(1);
     stroke(200, 200, 200);
-    for (let i = 0; i <= int(width / _grid); i++) {
-      line(i * _grid, 0, i * _grid, height);
+    for (let i = 0; i <= int(width / this.GRID_SIZE); i++) {
+      line(i * this.GRID_SIZE, 0, i * this.GRID_SIZE, height);
     }
-    for (let i = 0; i <= int(height / _grid); i++) {
-      line(0, i * _grid, width, i * _grid);
+    for (let i = 0; i <= int(height / this.GRID_SIZE); i++) {
+      line(0, i * this.GRID_SIZE, width, i * this.GRID_SIZE);
     }
     let actions = new Actions();
     switch (this.state) {
@@ -51,8 +51,8 @@ class Canvas {
           line(
             canvas.dots[canvas.ends[0]].pos.x,
             canvas.dots[canvas.ends[0]].pos.y,
-            input.mspos.x,
-            input.mspos.y
+            input.mousePostion.x,
+            input.mousePostion.y
           );
         }
         actions.new_bond();
@@ -67,10 +67,9 @@ class Canvas {
       b.move();
     }
     noStroke();
-    let pause = this.pause;
     for (let dot of this.dots) {
       dot.show();
-      if (dot instanceof Node && !pause) {
+      if (dot instanceof Node && !this.pause) {
         dot.collide();
         dot.move();
         dot.walls();
@@ -103,7 +102,7 @@ class Canvas {
     }
   }
   get pause() {
-    if (pause_chbox.checked) {
+    if (pauseCheckbox.checked) {
       return true;
     } else {
       return false;
@@ -112,19 +111,19 @@ class Canvas {
 }
 
 class Physics {
-  _g = 9.8066;
-  _energy = 0.7;
-  _stiffness = 0.03;
-  _mass = 1;
+  _G = 9.8066;
+  _G_MULTIPLIER = 0.045;
+  ENERGY = 0.7;
+  BOND_STIFFNESS = 0.03;
+  NODE_MASS = 1;
   constructor() {
     if (Physics._instance) {
       return Physics._instance;
     }
     Physics._instance = this;
-    this.g_mult = 0.045;
   }
-  get g_result() {
-    return this.g_mult * this._g;
+  get g() {
+    return this._G_MULTIPLIER * this._G;
   }
 }
 
@@ -135,20 +134,16 @@ class Input {
     }
     Input._instance = this;
   }
-  get mspos() {
+  get mousePosition() {
     return createVector(mouseX, mouseY);
   }
-  get mspos_gr() {
-    let msx = mouseX;
-    let msy = mouseY;
-    if (grid_chbox.checked) {
-      return createVector(
-        round(msx / _grid) * _grid,
-        round(msy / _grid) * _grid
-      );
-    } else {
-      return createVector(msx, msy);
-    }
+  get positionOnGrid() {
+    let canvas = new Canvas();
+    let gridSize = canvas.GRID_SIZE;
+    return createVector(
+      round(mouseX / gridSize) * gridSize,
+      round(mouseY / gridSize) * gridSize
+    );
   }
 }
 
@@ -162,10 +157,10 @@ class Actions {
   }
   get select() {
     let input = new Input();
-    let mspos = input.mspos;
+    let mousePostion = input.mousePosition;
     let x = -1;
     for (let i = 0; i < canvas.dots.length; i++) {
-      let vec = p5.Vector.sub(mspos, canvas.dots[i].pos);
+      let vec = p5.Vector.sub(mousePostion, canvas.dots[i].pos);
       let dist = vec.mag();
       if (dist < canvas.dsize) {
         x = i;
@@ -178,17 +173,22 @@ class Actions {
     let input = new Input();
     let x = this.select;
     if (mouseButton == LEFT && mouseIsPressed == true && x != -1) {
-      let mspos = input.mspos;
-      canvas.dots[x].pos = mspos;
+      let mousePostion = input.mousePostion;
+      canvas.dots[x].pos = mousePostion;
       canvas.dots[x].vel = createVector(0, 0);
     }
   }
   new_dot() {
     let input = new Input();
-    let mspos_gr = input.mspos_gr;
+    let dotPosition;
+    if (gridCheckbox.checked) {
+      dotPosition = input.positionOnGrid;
+    } else {
+      dotPosition = input.mousePosition;
+    }
     let dot_near = false;
     for (let i = 0; i < canvas.dots.length; i++) {
-      if (p5.Vector.sub(mspos_gr, canvas.dots[i].pos).mag() < canvas.dsize) {
+      if (p5.Vector.sub(dotPosition, canvas.dots[i].pos).mag() < canvas.dsize) {
         dot_near = true;
         break;
       }
@@ -197,19 +197,15 @@ class Actions {
       !dot_near &&
       mouseButton == LEFT &&
       mouseIsPressed == true &&
-      !(mspos_gr.x <= 182 && mspos_gr.y <= 260)
+      !(dotPosition.x <= 182 && dotPosition.y <= 260)
     ) {
       switch (canvas.state) {
         case 2:
-          canvas.dots.push(new Pin(mspos_gr));
+          canvas.dots.push(new Pin(dotPosition));
           break;
         case 3:
           canvas.dots.push(
-            new Node(
-              mspos_gr,
-              createVector(0, 0),
-              createVector(0, canvas.g_result)
-            )
+            new Node(dotPosition, createVector(0, 0), createVector(0, canvas.g))
           );
           break;
       }
@@ -250,7 +246,7 @@ class Node extends Dot {
     this.vel = vel;
     this.acc = acc;
     let physics = new Physics();
-    this.energy = physics._energy;
+    this.energy = physics.ENERGY;
     canvas = new Canvas();
   }
   show() {
@@ -345,9 +341,9 @@ class Bond {
   }
   move() {
     let physics = new Physics();
-    let m = physics._mass;
-    let k = physics._stiffness;
-    let e = physics._energy;
+    let m = physics.NODE_MASS;
+    let k = physics.BOND_STIFFNESS;
+    let e = physics.ENERGY;
     let vec = p5.Vector.sub(this.n1.pos, this.n2.pos);
     let dist = vec.mag();
     let x = Math.abs(dist - this.len);
